@@ -1,0 +1,1 @@
+# changelogs-generator-gh-actions
