@@ -1,79 +1,27 @@
 #!/bin/sh
 
-echo 'lol'
-# set -e
+# docker build . -t test
+# docker run --rm --env GH_TOKEN=$GH_TOKEN --env MILESTONES_NAME="v0.31.0" test
 
-# TRIGGER_ACTION="closed"
+echo 'Generating changelogs for Meilisearch'...
+./$RELEASE_GENERATOR_BIN > release_file
 
-# echo "Getting GitHub Actions information..."
-# ACTION=$(/JSON.sh < "${GITHUB_EVENT_PATH}" | grep '\["action"]' | cut -f2 | sed 's/\"//g')
-# GH_EVENT_MILESTONE_NUMBER=$(/JSON.sh < "${GITHUB_EVENT_PATH}" | grep '\["milestone","number"]' | cut -f2)
-# REPOSITORY_NAME=$(/JSON.sh < "${GITHUB_EVENT_PATH}" | grep '\["repository","name"]' | cut -f2 | sed 's/\"//g')
-# OWNER_ID=$(/JSON.sh < "${GITHUB_EVENT_PATH}" | grep '\["repository","owner","login"]' | cut -f2 | sed 's/\"//g')
-# GH_USERNAME=$(/JSON.sh < "${GITHUB_EVENT_PATH}" | grep '\["sender","login"]' | cut -f2 | sed 's/\"//g')
-# PROVIDED_MILESTONE_ID=$(/JSON.sh < "${GITHUB_EVENT_PATH}" | grep '\["inputs","milestoneId"]' | cut -f2 | sed 's/\"//g')
+echo "Creating the PR"
+changelog_file="meilisearch-release-changelogs/$MILESTONES_NAME.md"
+branch="changelog-$MILESTONES_NAME"
+repo="curquiza/core-team"
 
-# MILESTONE_ID_TO_USE=${MILESTONE_NUMBER:-$PROVIDED_MILESTONE_ID}
-# MILESTONE_ID_TO_USE=${MILESTONE_ID_TO_USE:-$GH_EVENT_MILESTONE_NUMBER}
-# echo "Action running with milestone $MILESTONE_ID_TO_USE on event $GITHUB_EVENT_NAME and action $ACTION"
+git config --global user.email "robot@meilisearch.com"
+git config --global user.name "Meili-bot"
+git clone "https://github.com/$repo.git"
+cd core-team
+git checkout -b $branch
+cp ../release_file $changelog_file
+git add $changelog_file
+git status
+git commit -m "Create changelog file for $MILESTONES_NAME"
+git push "https://$GH_TOKEN@github.com/$repo.git"
 
-# #Check if Milestone exists, which means actions was raised by a milestone operation.
-# if [[ -z "$MILESTONE_ID_TO_USE" ]]; then
-#     echo "Milestone number is missing. Was the action raised by a milestone event?"
-#     exit 1
-# fi
+# Authentication made with en var GH_TOKEN
+gh pr create --title "The bug is fixed" --body "Everything works again" --base "main" --head $branch
 
-# OUTPUT_FILENAME="release_file.md"
-
-# # Check if we should use milestone title instead
-# if [[ -z "$FILENAME" && ! -z "$USE_MILESTONE_TITLE" ]]; then
-#     MILESTONE_TITLE=$(/JSON.sh < "${GITHUB_EVENT_PATH}" | grep '\["milestone","title"]' | cut -f2 | sed 's/\"//g' | sed 's/ /_/g')
-#     OUTPUT_FILENAME="$MILESTONE_TITLE.md"
-# fi
-
-# # Check if a filename is provided
-# if [[ ! -z "$FILENAME" ]]; then
-#     OUTPUT_FILENAME="$FILENAME.md"
-# fi
-
-# # Check if a filename prefix is provided
-# if [[ ! -z "$FILENAME_PREFIX" ]]; then
-#   if [[ ! -z "$FILENAME" ]]; then
-#     OUTPUT_FILENAME="$FILENAME_PREFIX$FILENAME.md"
-#   else
-#     OUTPUT_FILENAME="$FILENAME_PREFIX$MILESTONE_ID_TO_USE.md"
-#   fi
-# fi
-
-# #Output folder configuration
-# if [ -z "$OUTPUT_FOLDER" ]; then
-#   echo "OUTPUT_FOLDER ENV is missing, using the default one"
-#   OUTPUT_FOLDER='.'
-# else
-#   mkdir -p $OUTPUT_FOLDER
-# fi
-
-# echo "Checking for custom configuration..."
-# CONFIG_FILE=".github/release-notes.yml"
-# if [[ ! -f ${CONFIG_FILE} ]]; then
-#     echo "No config file specified."
-#     CONFIG_FILE=""
-# else
-#     echo "Configuring the action using $CONFIG_FILE"
-# fi
-
-# if [[ "workflow_dispatch" == "$GITHUB_EVENT_NAME" || "$ACTION" == "$TRIGGER_ACTION" ]]; then
-#     echo "Creating release notes for Milestone $MILESTONE_ID_TO_USE into the $OUTPUT_FILENAME file"
-#     java -jar /github-release-notes-generator.jar \
-#     --changelog.repository=${OWNER_ID}/${REPOSITORY_NAME} \
-#     --github.username=${GH_USERNAME} \
-#     --github.password=${GITHUB_TOKEN} \
-#     --changelog.milestone-reference=id \
-#     --spring.config.location=${CONFIG_FILE} \
-#     ${MILESTONE_ID_TO_USE} \
-#     ${OUTPUT_FOLDER}/${OUTPUT_FILENAME}
-#     cat ${OUTPUT_FOLDER}/${OUTPUT_FILENAME}
-# else
-#     echo "Release notes generation skipped because action was: $ACTION"
-#     exit 78
-# fi

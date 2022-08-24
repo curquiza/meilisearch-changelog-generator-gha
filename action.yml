@@ -5,11 +5,15 @@ inputs:
   milestones_name:
     description: 'The title of the Milestones (vX.Y.Z)'
     required: true
+  github_token:
+    description: 'GitHub token'
+    required: true
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  args:
-    - ${{ inputs.milestones_name }}
+  env:
+    MILESTONES_NAME: ${{ inputs.milestones_name }}
+    GH_TOKEN: ${{ inputs.github_token }}
 branding:
   icon: file
   color: purple

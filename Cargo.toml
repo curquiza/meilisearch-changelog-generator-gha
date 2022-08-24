@@ -1,0 +1,11 @@
+[package]
+name = "changelog-generator"
+version = "0.1.0"
+description = "Generate changelogs for Meilisearch"
+authors = ["Clémentine Urquizar <clementine@meilisearch.com>"]
+license = "MIT"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
