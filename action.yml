@@ -1,0 +1,15 @@
+name: Release changelog generator for Meilisearch
+author: curquiza <clementine@meilisearch.com>
+description: This GitHub Actions creates the release changelogs and open the PR on the meilisearch/core team repository.
+inputs:
+  milestones_name:
+    description: 'The title of the Milestones (vX.Y.Z)'
+    required: true
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.milestones_name }}
+branding:
+  icon: file
+  color: purple
